@@ -6,7 +6,7 @@
 
 1. Клонируйте репозиторий:
    ```bash
-   git clone -
+   git clone https://github.com/Danon47/users-app.git
    cd users-app
    npm install
    npm run dev
