@@ -7,6 +7,7 @@ interface UsersState {
   currentUser: User | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
+  loading: boolean;
   pagination: {
     currentPage: number;
     itemsPerPage: number;
@@ -18,6 +19,7 @@ const initialState: UsersState = {
   currentUser: null,
   status: 'idle',
   error: null,
+  loading: false,
   pagination: {
     currentPage: 1,
     itemsPerPage: 6,

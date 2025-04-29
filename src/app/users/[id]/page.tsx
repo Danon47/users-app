@@ -1,89 +1,58 @@
-'use client'; 
+'use client';
 
-import { useAppSelector } from '@/store/hooks';
-import { fetchUserById } from '@/features/users/usersSlice';
 import { useEffect } from 'react';
-import { useAppDispatch } from '@/store/hooks';
+import { useParams } from 'next/navigation';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchUserById } from '@/features/users/usersSlice';
 import Error from '@/shared/components/Error';
+import Loader from '@/shared/components/Loading';
+import Image from 'next/image';
 import Link from 'next/link';
-import Loading from '@/shared/components/Loading';
-import { useRouter } from 'next/navigation'; 
 
-interface UserPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function UserPage({ params }: UserPageProps) {
+export default function UserPage() {
+  const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
-  const { currentUser, status, error } = useAppSelector((state) => state.users);
-  const userId = parseInt(params.id);
 
-  const router = useRouter();
+  const { currentUser, loading, error } = useAppSelector((state) => state.users);
 
   useEffect(() => {
-    dispatch(fetchUserById(userId));
-  }, [dispatch, userId]);
+    if (id) {
+      dispatch(fetchUserById(Number(id)));
+    }
+  }, [id, dispatch]);
 
-  if (status === 'failed') {
-    return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <Error message={error || 'User not found'} />
-        <Link href="/users" className="text-blue-600 hover:underline mt-4 inline-block">
-          ← Back to Users
-        </Link>
-      </div>
-    );
-  }
-
-  if (status !== 'succeeded' || !currentUser) {
-    return <Loading />;
-  }
-
-  if (!currentUser) {
-    router.push('/404'); 
-    return null; 
-  }
+  if (loading) return <Loader />;
+  if (error) return <Error message={error} />;
+  if (!currentUser) return <p className="text-center mt-10">Пользователь не найден.</p>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-2xl mx-auto px-4 py-8">
       <Link href="/users" className="text-blue-600 hover:underline mb-4 inline-block">
-        ← Back to Users
+        ← Назад к списку пользователей
       </Link>
 
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl mx-auto">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="flex-shrink-0">
-            <img
-              src={`https://i.pravatar.cc/150?u=${currentUser.email}`}
-              alt={`${currentUser.name}'s avatar`}
-              className="rounded-full w-32 h-32 border-4 border-blue-500"
-            />
-          </div>
+      <div className="bg-white shadow-lg rounded-2xl p-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Image
+            src={`https://i.pravatar.cc/150?u=${currentUser.email}`}
+            alt={`${currentUser.name} avatar`}
+            width={80}
+            height={80}
+            className="rounded-full"
+          />
           <div>
-            <h1 className="text-3xl font-semibold mb-2">{currentUser.name}</h1>
-            <p className="text-lg text-gray-600 mb-4">{currentUser.email}</p>
-
-            <div className="space-y-3">
-              <p><span className="font-medium">Username:</span> {currentUser.username}</p>
-              <p><span className="font-medium">Phone:</span> {currentUser.phone}</p>
-              <p><span className="font-medium">Website:</span> {currentUser.website}</p>
-
-              <div className="mt-4">
-                <h2 className="text-xl font-semibold mb-2">Address</h2>
-                <p>{currentUser.address.street}, {currentUser.address.suite}</p>
-                <p>{currentUser.address.city}, {currentUser.address.zipcode}</p>
-              </div>
-
-              <div className="mt-4">
-                <h2 className="text-xl font-semibold mb-2">Company</h2>
-                <p>{currentUser.company.name}</p>
-                <p className="text-gray-600">{currentUser.company.catchPhrase}</p>
-              </div>
-            </div>
+            <h1 className="text-2xl font-bold">{currentUser.name}</h1>
+            <p className="text-gray-600">{currentUser.email}</p>
           </div>
         </div>
+
+        <ul className="space-y-2 text-gray-800">
+          <li><strong>Телефон:</strong> {currentUser.phone}</li>
+          <li><strong>Город:</strong> {currentUser.address.city}</li>
+          <li><strong>Улица:</strong> {currentUser.address.street}</li>
+          <li><strong>Компания:</strong> {currentUser.company.name}</li>
+          <li><strong>Сайт:</strong> <a href={`http://${currentUser.website}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{currentUser.website}</a></li>
+        </ul>
       </div>
     </div>
   );
